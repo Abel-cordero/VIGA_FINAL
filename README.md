@@ -258,6 +258,19 @@ Para que el mismo icono aparezca en la barra de tareas y en el archivo `.exe`,
 primero convierte `vigapp060.png` a formato `.ico`. Luego usa
 `auto-py-to-exe` o `pyinstaller` indicando esa ruta en la opción `--icon`.
 
+### Activación por hardware
+
+Al iniciar la aplicación se muestra un **código de equipo** derivado del
+hardware. Envíe ese código a la persona encargada y utilice el script
+`scripts/generate_license.py` para generar la clave correspondiente:
+
+```bash
+python scripts/generate_license.py <codigo> --counter 1
+```
+
+Ingrese la clave resultante en la ventana de activación. Cada clave es válida
+solo para el equipo que generó el código y para un único contador.
+
 ### Cambios recientes
 
 - Los diagramas de momentos se ajustaron para mostrar los valores negativos

@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QInputDialog
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 from src.moment_app import MomentApp
-from src.activation import check_activation, activate
+from src.activation import check_activation, activate, machine_code
 
 
 def main():
@@ -24,8 +24,9 @@ def main():
             256, 256, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         app.setWindowIcon(QIcon(pix))
     if not check_activation():
-        key, ok = QInputDialog.getText(
-            None, "Activar VIGAPP 060", "Ingrese la clave:")
+        code = machine_code()
+        msg = f"Codigo de esta PC:\n{code}\n\nIngrese la clave:"
+        key, ok = QInputDialog.getText(None, "Activar VIGAPP 060", msg)
         if not ok or not activate(key):
             QMessageBox.critical(
                 None,
