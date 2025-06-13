@@ -126,7 +126,10 @@ def hardware_id() -> str:
 
 def activate(key: str) -> bool:
     """Store the hardware hash if the provided key is correct."""
-    if key != current_license():
+    # Accept minor formatting differences by ignoring spaces and case
+    key = "".join(key.split()).upper()
+    expected = current_license().upper()
+    if key != expected:
         return False
     with open(KEY_FILE, "w") as f:
         f.write(_encrypt(hardware_id()))
