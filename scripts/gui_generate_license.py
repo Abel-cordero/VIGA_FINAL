@@ -1,4 +1,6 @@
 import sys
+import os
+
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
@@ -10,6 +12,10 @@ from PyQt5.QtWidgets import (
     QLabel,
     QMessageBox,
 )
+
+# Ensure the "src" package is importable when executing this script directly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.activation import license_for
 
 

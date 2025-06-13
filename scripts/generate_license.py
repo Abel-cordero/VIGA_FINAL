@@ -1,4 +1,10 @@
 import argparse
+import os
+import sys
+
+# Ensure the "src" package can be imported when running this script directly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.activation import license_for
 
 parser = argparse.ArgumentParser(description="Generate VigApp activation code")

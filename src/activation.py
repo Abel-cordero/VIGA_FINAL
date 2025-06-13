@@ -75,7 +75,14 @@ def _disk_serial() -> str:
 
 
 def _read_counter() -> int:
-    """Return the current license counter."""
+    """Return the current license counter.
+
+    The counter is only considered valid if a matching activation file exists.
+    This avoids confusion when ``key.dat`` was removed but ``counter.dat`` was
+    left behind.
+    """
+    if not os.path.exists(KEY_FILE):
+        return 1
     if os.path.exists(COUNTER_FILE):
         try:
             data = open(COUNTER_FILE).read().strip()
