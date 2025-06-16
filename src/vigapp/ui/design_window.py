@@ -28,8 +28,17 @@ import numpy as np
 class DesignWindow(QMainWindow):
     """Ventana para la etapa de diseño de acero (solo interfaz gráfica)."""
 
-    def __init__(self, mn_corr, mp_corr, parent=None, *, show_window=True,
-                 next_callback=None, save_callback=None, menu_callback=None):
+    def __init__(
+        self,
+        mn_corr,
+        mp_corr,
+        parent=None,
+        *,
+        show_window=True,
+        next_callback=None,
+        save_callback=None,
+        menu_callback=None,
+    ):
         """Create the design window using corrected moments."""
         super().__init__(parent)
         self.mn_corr = mn_corr
@@ -48,9 +57,9 @@ class DesignWindow(QMainWindow):
         """Calculate required steel area for a single moment."""
         Mu_kgcm = abs(Mu) * 100000  # convert TN·m to kg·cm
         term = 1.7 * fc * b * d / (2 * fy)
-        root = (2.89 * (fc * b * d) ** 2) / (fy ** 2) - (
-            6.8 * fc * b * Mu_kgcm
-        ) / (phi * (fy ** 2))
+        root = (2.89 * (fc * b * d) ** 2) / (fy**2) - (6.8 * fc * b * Mu_kgcm) / (
+            phi * (fy**2)
+        )
         root = max(root, 0)
         return term - 0.5 * np.sqrt(root)
 
@@ -99,12 +108,14 @@ class DesignWindow(QMainWindow):
         for rows in self.rebar_rows:
             for row in rows:
                 try:
-                    n = int(row['qty'].currentText()) if row['qty'].currentText() else 0
+                    n = int(row["qty"].currentText()) if row["qty"].currentText() else 0
                 except ValueError:
                     n = 0
-                dia_key = row['dia'].currentText()
+                dia_key = row["dia"].currentText()
                 area = n * BAR_DATA.get(dia_key, 0)
-                layer = int(row['capa'].currentText()) if row['capa'].currentText() else 1
+                layer = (
+                    int(row["capa"].currentText()) if row["capa"].currentText() else 1
+                )
                 if area > layer_areas[layer]:
                     layer_areas[layer] = area
                     layer_diams[layer] = DIAM_CM.get(dia_key, 0)
@@ -134,7 +145,7 @@ class DesignWindow(QMainWindow):
                     As2 = layer_areas[2]
                     As3 = layer_areas[3]
                     s = As1 + As2 + As3
-                    d = (d1*As1 + d2*As2 + d3*As3) / s if s else d1
+                    d = (d1 * As1 + d2 * As2 + d3 * As3) / s if s else d1
                 else:
                     d4 = d3 - 3
                     As1 = layer_areas[1]
@@ -142,7 +153,7 @@ class DesignWindow(QMainWindow):
                     As3 = layer_areas[3]
                     As4 = layer_areas[4]
                     s = As1 + As2 + As3 + As4
-                    d = (d1*As1 + d2*As2 + d3*As3 + d4*As4) / s if s else d1
+                    d = (d1 * As1 + d2 * As2 + d3 * As3 + d4 * As4) / s if s else d1
 
         self.edits["d (cm)"].setText(f"{d:.2f}")
         return d
@@ -150,7 +161,7 @@ class DesignWindow(QMainWindow):
     def _build_ui(self):
         content = QWidget()
         layout = QGridLayout(content)
-        layout.setVerticalSpacing(10)
+        layout.setVerticalSpacing(3)
         layout.setSizeConstraint(QLayout.SetMinimumSize)
 
         scroll = QScrollArea()
@@ -188,7 +199,7 @@ class DesignWindow(QMainWindow):
             self.edits[text] = ed
 
         # Combos para diámetro de estribo y de varilla
-        estribo_opts = ["8mm", "3/8\"", "1/2\""]
+        estribo_opts = ["8mm", '3/8"', '1/2"']
         lbl_estribo = QLabel("ϕ estribo")
         lbl_estribo.setFont(small_font)
         layout.addWidget(lbl_estribo, len(labels), 0)
@@ -198,23 +209,23 @@ class DesignWindow(QMainWindow):
         self.cb_estribo.setCurrentText('3/8"')
         layout.addWidget(self.cb_estribo, len(labels), 1)
 
-        varilla_opts = ["1/2\"", "5/8\"", "3/4\"", "1\""]
+        varilla_opts = ['1/2"', '5/8"', '3/4"', '1"']
         lbl_varilla = QLabel("ϕ varilla")
         lbl_varilla.setFont(small_font)
-        layout.addWidget(lbl_varilla, len(labels)+1, 0)
+        layout.addWidget(lbl_varilla, len(labels) + 1, 0)
         self.cb_varilla = QComboBox()
         self.cb_varilla.setFont(small_font)
         self.cb_varilla.addItems(varilla_opts)
         self.cb_varilla.setCurrentText('5/8"')
-        layout.addWidget(self.cb_varilla, len(labels)+1, 1)
+        layout.addWidget(self.cb_varilla, len(labels) + 1, 1)
 
         lbl_capas = QLabel("N\u00b0 capas")
         lbl_capas.setFont(small_font)
-        layout.addWidget(lbl_capas, len(labels)+2, 0)
+        layout.addWidget(lbl_capas, len(labels) + 2, 0)
         self.layer_combo = QComboBox()
         self.layer_combo.setFont(small_font)
         self.layer_combo.addItems(["1", "2", "3", "4"])
-        layout.addWidget(self.layer_combo, len(labels)+2, 1)
+        layout.addWidget(self.layer_combo, len(labels) + 2, 1)
 
         pos_labels = ["M1-", "M2-", "M3-", "M1+", "M2+", "M3+"]
         self.rebar_rows = [[] for _ in range(6)]
@@ -258,21 +269,44 @@ class DesignWindow(QMainWindow):
 
         row_start = len(labels) + 3
 
-        layout.addWidget(QLabel("As min (cm²):"), row_start, 2)
+        tiny_font = QFont()
+        tiny_font.setPointSize(7)
+
+        as_layout = QHBoxLayout()
+        as_layout.setSpacing(2)
+        as_layout.setContentsMargins(0, 0, 0, 0)
+
+        lbl_as_min = QLabel("As min (cm²):")
+        lbl_as_min.setFont(tiny_font)
+        as_layout.addWidget(lbl_as_min)
         self.as_min_label = QLabel("0.00")
-        layout.addWidget(self.as_min_label, row_start, 3)
+        self.as_min_label.setFont(tiny_font)
+        as_layout.addWidget(self.as_min_label)
 
-        layout.addWidget(QLabel("As max (cm²):"), row_start + 1, 2)
+        lbl_as_max = QLabel("As max (cm²):")
+        lbl_as_max.setFont(tiny_font)
+        as_layout.addWidget(lbl_as_max)
         self.as_max_label = QLabel("0.00")
-        layout.addWidget(self.as_max_label, row_start + 1, 3)
+        self.as_max_label.setFont(tiny_font)
+        as_layout.addWidget(self.as_max_label)
 
-        layout.addWidget(QLabel("Base req. (cm):"), row_start, 4)
+        lbl_base_req = QLabel("Base req. (cm):")
+        lbl_base_req.setFont(tiny_font)
+        as_layout.addWidget(lbl_base_req)
         self.base_req_label = QLabel("-")
-        layout.addWidget(self.base_req_label, row_start, 5)
-        self.base_msg_label = QLabel("")
-        layout.addWidget(self.base_msg_label, row_start + 1, 4, 1, 2)
+        self.base_req_label.setFont(tiny_font)
+        as_layout.addWidget(self.base_req_label)
 
-        self.fig_sec, self.ax_sec = plt.subplots(figsize=(3, 3), constrained_layout=True)
+        self.base_msg_label = QLabel("")
+        self.base_msg_label.setFont(tiny_font)
+        as_layout.addWidget(self.base_msg_label)
+        as_layout.addStretch()
+
+        layout.addLayout(as_layout, row_start, 2, 1, 6)
+
+        self.fig_sec, self.ax_sec = plt.subplots(
+            figsize=(3, 3), constrained_layout=True
+        )
         self.canvas_sec = FigureCanvas(self.fig_sec)
         layout.addWidget(self.canvas_sec, 0, 2, len(labels) + 3, 4)
 
@@ -280,9 +314,9 @@ class DesignWindow(QMainWindow):
             2, 1, figsize=(5, 6), constrained_layout=True
         )
         self.canvas_dist = FigureCanvas(self.fig_dist)
-        layout.addWidget(self.canvas_dist, row_start + 2, 0, 1, 8)
+        layout.addWidget(self.canvas_dist, row_start + 1, 0, 1, 8)
 
-        layout.addLayout(self.combo_grid, row_start + 3, 0, 1, 8)
+        layout.addLayout(self.combo_grid, row_start + 2, 0, 1, 8)
 
         self.btn_capture = QPushButton("CAPTURA")
         self.btn_memoria = QPushButton("REPORTES")
@@ -294,10 +328,10 @@ class DesignWindow(QMainWindow):
         self.btn_view3d.clicked.connect(self.on_next)
         self.btn_menu.clicked.connect(self.on_menu)
 
-        layout.addWidget(self.btn_capture, row_start + 4, 0, 1, 2)
-        layout.addWidget(self.btn_memoria, row_start + 4, 2, 1, 2)
-        layout.addWidget(self.btn_view3d,  row_start + 4, 4, 1, 2)
-        layout.addWidget(self.btn_menu,    row_start + 4, 6, 1, 2)
+        layout.addWidget(self.btn_capture, row_start + 3, 0, 1, 2)
+        layout.addWidget(self.btn_memoria, row_start + 3, 2, 1, 2)
+        layout.addWidget(self.btn_view3d, row_start + 3, 4, 1, 2)
+        layout.addWidget(self.btn_menu, row_start + 3, 6, 1, 2)
 
         for ed in self.edits.values():
             ed.editingFinished.connect(self._redraw)
@@ -306,7 +340,7 @@ class DesignWindow(QMainWindow):
 
         for rows in self.rebar_rows:
             for row in rows:
-                for box in (row['qty'], row['dia'], row['capa']):
+                for box in (row["qty"], row["dia"], row["capa"]):
                     box.currentIndexChanged.connect(self.update_design_as)
 
         self.as_min = 0.0
@@ -321,7 +355,7 @@ class DesignWindow(QMainWindow):
         if len(self.rebar_rows[idx]) >= 4:
             return
         qty_opts = [""] + [str(i) for i in range(1, 11)]
-        dia_opts = ["", "1/2\"", "5/8\"", "3/4\"", "1\""]
+        dia_opts = ["", '1/2"', '5/8"', '3/4"', '1"']
         row_layout = QHBoxLayout()
         q = QComboBox()
         q.addItems(qty_opts)
@@ -354,7 +388,9 @@ class DesignWindow(QMainWindow):
         if len(self.rebar_rows[idx]) <= 1:
             return
         widget.setParent(None)
-        self.rebar_rows[idx] = [r for r in self.rebar_rows[idx] if r["widget"] != widget]
+        self.rebar_rows[idx] = [
+            r for r in self.rebar_rows[idx] if r["widget"] != widget
+        ]
         self.update_design_as()
 
     def draw_section(self):
@@ -370,50 +406,53 @@ class DesignWindow(QMainWindow):
         y_d = h - d
 
         self.ax_sec.clear()
-        self.ax_sec.set_aspect('equal')
-        self.ax_sec.plot([0, b, b, 0, 0], [0, 0, h, h, 0], 'k-')
-        self.ax_sec.plot([r, b - r, b - r, r, r], [r, r, h - r, h - r, r], 'r--')
+        self.ax_sec.set_aspect("equal")
+        self.ax_sec.plot([0, b, b, 0, 0], [0, 0, h, h, 0], "k-")
+        self.ax_sec.plot([r, b - r, b - r, r, r], [r, r, h - r, h - r, r], "r--")
 
-        self.ax_sec.annotate('', xy=(0, -5), xytext=(b, -5),
-                             arrowprops=dict(arrowstyle='<->'))
+        self.ax_sec.annotate(
+            "", xy=(0, -5), xytext=(b, -5), arrowprops=dict(arrowstyle="<->")
+        )
         self.ax_sec.text(
             b / 2,
             -6,
             f"b = {b:.0f} cm",
-            ha='center',
-            va='top',
+            ha="center",
+            va="top",
             fontsize=8,
         )
 
         # Cota de peralte pegada a la viga
-        self.ax_sec.annotate('', xy=(-5, h), xytext=(-5, y_d),
-                             arrowprops=dict(arrowstyle='<->'))
+        self.ax_sec.annotate(
+            "", xy=(-5, h), xytext=(-5, y_d), arrowprops=dict(arrowstyle="<->")
+        )
         self.ax_sec.text(
             -6,
             (h + y_d) / 2,
             f"d = {d:.1f} cm",
-            ha='right',
-            va='center',
+            ha="right",
+            va="center",
             rotation=90,
             fontsize=8,
         )
 
         # Cota de altura total hacia la izquierda
-        self.ax_sec.annotate('', xy=(-12, 0), xytext=(-12, h),
-                             arrowprops=dict(arrowstyle='<->'))
+        self.ax_sec.annotate(
+            "", xy=(-12, 0), xytext=(-12, h), arrowprops=dict(arrowstyle="<->")
+        )
         self.ax_sec.text(
             -13,
             h / 2,
             f"h = {h:.0f} cm",
-            ha='right',
-            va='center',
+            ha="right",
+            va="center",
             rotation=90,
             fontsize=8,
         )
 
         self.ax_sec.set_xlim(-15, b + 10)
         self.ax_sec.set_ylim(-10, h + 10)
-        self.ax_sec.axis('off')
+        self.ax_sec.axis("off")
         self.canvas_sec.draw()
 
     def _redraw(self):
@@ -427,24 +466,40 @@ class DesignWindow(QMainWindow):
         areas_n, areas_p = self._required_areas()
 
         self.ax_req.clear()
-        self.ax_req.plot([0, 1], [0, 0], 'k-', lw=6)
+        self.ax_req.plot([0, 1], [0, 0], "k-", lw=6)
 
         y_off = 0.1 * max(np.max(areas_n), np.max(areas_p), 1)
         label_off = 0.2 * y_off
         for idx, (x, a_n) in enumerate(zip(x_ctrl, areas_n), 1):
-            self.ax_req.text(x, y_off, f"As- {a_n:.2f}", ha='center',
-                             va='bottom', color='b', fontsize=9)
-            self.ax_req.text(x, label_off, f"M{idx}-", ha='center',
-                             va='bottom', fontsize=7)
+            self.ax_req.text(
+                x,
+                y_off,
+                f"As- {a_n:.2f}",
+                ha="center",
+                va="bottom",
+                color="b",
+                fontsize=9,
+            )
+            self.ax_req.text(
+                x, label_off, f"M{idx}-", ha="center", va="bottom", fontsize=7
+            )
         for idx, (x, a_p) in enumerate(zip(x_ctrl, areas_p), 1):
-            self.ax_req.text(x, -y_off, f"As+ {a_p:.2f}", ha='center',
-                             va='top', color='r', fontsize=9)
-            self.ax_req.text(x, -label_off, f"M{idx}+", ha='center',
-                             va='top', fontsize=7)
+            self.ax_req.text(
+                x,
+                -y_off,
+                f"As+ {a_p:.2f}",
+                ha="center",
+                va="top",
+                color="r",
+                fontsize=9,
+            )
+            self.ax_req.text(
+                x, -label_off, f"M{idx}+", ha="center", va="top", fontsize=7
+            )
 
         self.ax_req.set_xlim(-0.05, 1.05)
-        self.ax_req.set_ylim(-2*y_off, 2*y_off)
-        self.ax_req.axis('off')
+        self.ax_req.set_ylim(-2 * y_off, 2 * y_off)
+        self.ax_req.axis("off")
         self.canvas_dist.draw()
 
     def update_design_as(self):
@@ -469,7 +524,9 @@ class DesignWindow(QMainWindow):
                 dia_key = row["dia"].currentText()
                 dia = DIAM_CM.get(dia_key, 0)
                 area = BAR_DATA.get(dia_key, 0)
-                layer = int(row["capa"].currentText()) if row["capa"].currentText() else 1
+                layer = (
+                    int(row["capa"].currentText()) if row["capa"].currentText() else 1
+                )
                 total += n * area
                 if layer in layers:
                     layers[layer]["n"] += n
@@ -500,7 +557,9 @@ class DesignWindow(QMainWindow):
             except ValueError:
                 self.base_msg_label.setText("")
             else:
-                self.base_msg_label.setText("OK" if max_base <= b_val else "Aumentar base o capa")
+                self.base_msg_label.setText(
+                    "OK" if max_base <= b_val else "Aumentar base o capa"
+                )
 
         statuses = ["OK" if t >= req else "NO OK" for t, req in zip(totals, as_reqs)]
 
@@ -512,22 +571,38 @@ class DesignWindow(QMainWindow):
         areas_n = areas[:3]
         areas_p = areas[3:]
         self.ax_des.clear()
-        self.ax_des.plot([0, 1], [0, 0], 'k-', lw=6)
+        self.ax_des.plot([0, 1], [0, 0], "k-", lw=6)
         y_off = 0.1 * max(max(areas_n, default=0), max(areas_p, default=0), 1)
         label_off = 0.2 * y_off
         for idx, (x, a, st) in enumerate(zip(x_ctrl, areas_n, statuses[:3]), 1):
-            self.ax_des.text(x, y_off, f"Asd- {a:.2f} {st}", ha='center',
-                             va='bottom', color='g', fontsize=9)
-            self.ax_des.text(x, label_off, f"M{idx}-", ha='center',
-                             va='bottom', fontsize=7)
+            self.ax_des.text(
+                x,
+                y_off,
+                f"Asd- {a:.2f} {st}",
+                ha="center",
+                va="bottom",
+                color="g",
+                fontsize=9,
+            )
+            self.ax_des.text(
+                x, label_off, f"M{idx}-", ha="center", va="bottom", fontsize=7
+            )
         for idx, (x, a, st) in enumerate(zip(x_ctrl, areas_p, statuses[3:]), 1):
-            self.ax_des.text(x, -y_off, f"Asd+ {a:.2f} {st}", ha='center',
-                             va='top', color='g', fontsize=9)
-            self.ax_des.text(x, -label_off, f"M{idx}+", ha='center',
-                             va='top', fontsize=7)
+            self.ax_des.text(
+                x,
+                -y_off,
+                f"Asd+ {a:.2f} {st}",
+                ha="center",
+                va="top",
+                color="g",
+                fontsize=9,
+            )
+            self.ax_des.text(
+                x, -label_off, f"M{idx}+", ha="center", va="top", fontsize=7
+            )
         self.ax_des.set_xlim(-0.05, 1.05)
         self.ax_des.set_ylim(-2 * y_off, 2 * y_off)
-        self.ax_des.axis('off')
+        self.ax_des.axis("off")
         self.canvas_dist.draw()
 
     def _capture_design(self):
@@ -536,7 +611,11 @@ class DesignWindow(QMainWindow):
             w.hide()
         self.repaint()
         QApplication.processEvents()
-        target = self.scroll_area.widget() if hasattr(self, "scroll_area") else self.centralWidget()
+        target = (
+            self.scroll_area.widget()
+            if hasattr(self, "scroll_area")
+            else self.centralWidget()
+        )
         pix = target.grab()
         QGuiApplication.clipboard().setPixmap(pix)
         for w in widgets:
@@ -605,7 +684,7 @@ class DesignWindow(QMainWindow):
             latex_image(
                 "d = h - r - \\phi_{estribo} - "
                 f"{frac('1','2')} \\phi_{{barra}} \\"  # Escapar llaves en f-string
-                f"  = {h} - {r} - {de} - {frac('1','2')}\\times {db} \\" 
+                f"  = {h} - {r} - {de} - {frac('1','2')}\\times {db} \\"
                 f"  = {d:.2f}\\,cm"
             ),
             "<h3>Cálculo de β<sub>1</sub></h3>",
@@ -640,9 +719,8 @@ class DesignWindow(QMainWindow):
         ):
             Mu_kgcm = abs(m) * 100000
             term = 1.7 * fc * b * d / (2 * fy)
-            root = (
-                (2.89 * (fc * b * d) ** 2) / (fy ** 2)
-                - (6.8 * fc * b * Mu_kgcm) / (phi * (fy ** 2))
+            root = (2.89 * (fc * b * d) ** 2) / (fy**2) - (6.8 * fc * b * Mu_kgcm) / (
+                phi * (fy**2)
             )
             root = max(root, 0)
             calc = term - 0.5 * np.sqrt(root)
@@ -669,9 +747,7 @@ class DesignWindow(QMainWindow):
             "h3{font-size:11pt;margin:6px 0;}"
             "p{margin:6px 0;} .eq{margin-left:20px;}"
             "</style>"
-            "</head><body>"
-            + "\n".join(lines) +
-            "</body></html>"
+            "</head><body>" + "\n".join(lines) + "</body></html>"
         )
         title = f"DISE\u00d1O DE VIGA {int(b)}X{int(h)}"
         return title, html
@@ -689,4 +765,3 @@ class DesignWindow(QMainWindow):
     def on_menu(self):
         if self.menu_callback:
             self.menu_callback()
-
